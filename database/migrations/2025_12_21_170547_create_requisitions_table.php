@@ -17,7 +17,7 @@ return new class extends Migration
             $table->string('department');
             $table->string('position');
             $table->integer('opening');
-            $table->enum('status', ['Active', 'Approved', 'Drafted'])->default('Active');
+            $table->enum('status', ['Pending', 'Accepted', 'Drafted'])->default('Pending');
             $table->timestamps();
         });
     }

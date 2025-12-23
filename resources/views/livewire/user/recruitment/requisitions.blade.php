@@ -2,87 +2,213 @@
 @section('page-subtitle', 'Manage job requisitions')
 @section('breadcrumbs', 'Requisitions')
 
-<div class="pt-2">
+<div @class('pt-2')>
 
-    <div class="d-flex justify-content-between align-items-center">
+    {{-- Toast --}}
+    @if(session('status'))
+        <div
+            aria-live="polite"
+            aria-atomic="true"
+            @class('position-relative')
+        >
+            {{-- Toast container in the top right --}}
+            <div
+                @class('toast-container text-bg-success rounded top-0 end-0 p-3')
+                style="z-index: 2000;"
+                wire:poll.3s="clearStatus"
+            >
+                @foreach((array) session('status') as $message)
+                    <div
+                        @class('')
+                        role="alert"
+                        aria-live="assertive"
+                        aria-atomic="true"
+                        data-bs-delay="3000"
+                        data-bs-autohide="true"
+                    >
+                        <div @class('d-flex')>
+                            <div @class('toast-body px-3')>
+                                {{ $message }}
+                            </div>
+
+                            <button
+                                type="button"
+                                @class('btn-close btn-close-white me-2 m-auto')
+                                data-bs-dismiss="toast"
+                                aria-label="Close"
+                            ></button>
+                        </div>
+                    </div>
+                @endforeach
+            </div>
+        </div>
+    @endif
+
+    {{-- STATUS CARDS --}}
+<div @class('row g-3 mb-3')>
+    @foreach ($statusCounts as $status => $count)
+        <div @class('col-3')>
+            <div @class('card p-3 shadow-sm border-0 h-100')>
+                {{-- Icon --}}
+                <div @class('mb-2')>
+                    @switch($status)
+                        @case('Pending')
+                            <i @class('bi bi-hourglass-split text-warning fs-3')></i>
+                            @break
+                        @case('Approved')
+                            <i @class('bi bi-check-circle-fill text-success fs-3')></i>
+                            @break
+                        @case('Drafted')
+                            <i @class('bi bi-journal-text text-secondary fs-3')></i>
+                            @break
+                        @case('All')
+                            <i @class('bi bi-collection-fill text-dark fs-3')></i>
+                            @break
+                    @endswitch
+                </div>
+
+                <div @class('ps-2')>
+                    {{-- Count --}}
+                    <div @class('fw-semi fs-4')>
+                        {{ $count }}
+                    </div>
+
+                    {{-- Label --}}
+                    <div @class('text-muted small')>
+                        {{ $status }} requisitions
+                    </div>
+                </div>
+            </div>
+        </div>
+    @endforeach
+</div>
+
+    {{-- HEADER ACTIONS --}}
+    <div @class('d-flex justify-content-between align-items-center')>
 
         {{-- LEFT SIDE --}}
-        <div class="mb-3 d-flex justify-content-between align-items-center gap-2">
-
+        <div @class('mb-3 d-flex justify-content-between align-items-center gap-2')>
+            
             {{-- Search Bar --}}
             <div>
-                <x-text-input type="search" wire:model.live.debounce.3s="search" placeholder="Search..." />
+                <x-text-input
+                    type="search"
+                    wire:model.live.debounce.3s="search"
+                    placeholder="Search..."
+                />
             </div>
 
             {{-- Filter Dropdown --}}
-            <div class="dropdown">
-                <button type="button" id="filterDropdown" data-bs-toggle="dropdown"
-                    class="btn btn-outline-body-tertiary dropdown-toggle d-flex align-items-center border rounded bg-secondary-subtle">
-                    <i class="bi bi-funnel-fill me-2"></i> Filter: {{ $statusFilter }}
+            <div @class('dropdown')>
+                <button
+                    type="button"
+                    id="filterDropdown"
+                    data-bs-toggle="dropdown"
+                    @class('btn btn-outline-body-tertiary dropdown-toggle d-flex align-items-center border rounded bg-secondary-subtle')
+                >
+                    <i @class('bi bi-funnel-fill me-2')></i>
+                    Filter: {{ $statusFilter }}
                 </button>
-                <ul class="dropdown-menu" aria-labelledby="filterDropdown">
-                    <li><a class="dropdown-item" wire:click="$set('statusFilter', 'All')">All</a></li>
-                    <li><a class="dropdown-item" wire:click="$set('statusFilter', 'Open')">Open</a></li>
-                    <li><a class="dropdown-item" wire:click="$set('statusFilter', 'Accepted')">Accepted</a></li>
-                    <li><a class="dropdown-item" wire:click="$set('statusFilter', 'Draft')">Draft</a></li>
+
+                <ul @class('dropdown-menu') aria-labelledby="filterDropdown">
+                    <li>
+                        <a @class('dropdown-item') wire:click="$set('statusFilter', 'All')">
+                            All
+                        </a>
+                    </li>
+                    <li>
+                        <a @class('dropdown-item') wire:click="$set('statusFilter', 'Open')">
+                            Open
+                        </a>
+                    </li>
+                    <li>
+                        <a @class('dropdown-item') wire:click="$set('statusFilter', 'Accepted')">
+                            Accepted
+                        </a>
+                    </li>
+                    <li>
+                        <a @class('dropdown-item') wire:click="$set('statusFilter', 'Draft')">
+                            Draft
+                        </a>
+                    </li>
                 </ul>
             </div>
         </div>
 
         {{-- RIGHT SIDE --}}
-        <div class="mb-3">
-            <div class="d-flex justify-content-between align-items-center gap-2">
-                <button class="btn btn-success" wire:click="export">Export to Excel</button>
+        <div @class('mb-3')>
+            <div @class('d-flex justify-content-between align-items-center gap-2')>
+                
+                <button
+                    @class('btn btn-success')
+                    wire:click="export"
+                >
+                    Export to Excel
+                </button>
 
                 @if(!$showDrafts)
-                    <button class="btn btn-danger" wire:click="openDraft">Open Drafts</button>
+                    <button
+                        @class('btn btn-danger')
+                        wire:click="openDraft"
+                    >
+                        Open Drafts
+                    </button>
                 @else
-                    <button class="btn btn-secondary" wire:click="showAll">Back to All</button>
+                    <button
+                        @class('btn btn-secondary')
+                        wire:click="showAll"
+                    >
+                        Back to All
+                    </button>
                 @endif
             </div>
         </div>
-
     </div>
 
     {{-- MAIN TABLE --}}
     @if($requisitions !== null)
-        <div class="p-5 bg-white rounded border rounded-bottom-0 border-bottom-0">
+        <div @class('p-5 bg-white rounded border rounded-bottom-0 border-bottom-0')>
             <h3>All Requisitions</h3>
-            <p class="text-secondary mb-0">Overview of requisitions</p>
+            <p @class('text-secondary mb-0')>
+                Overview of requisitions
+            </p>
         </div>
-
-        <div class="table-responsive border rounded bg-white px-5 rounded-top-0 border-top-0">
-            <table class="table">
+        <div @class('table-responsive border rounded bg-white px-5 rounded-top-0 border-top-0')>
+            <table @class('table')>
                 <thead>
-                    <tr class="bg-dark">
-                        <th class="text-secondary">Requested by</th>
-                        <th class="text-secondary">Department</th>
-                        <th class="text-secondary">Position</th>
-                        <th class="text-secondary">Opening</th>
-                        <th class="text-secondary">Status</th>
-                        <th class="text-secondary">Actions</th>
+                    <tr @class('bg-dark')>
+                        <th @class('text-secondary')>Requested by</th>
+                        <th @class('text-secondary')>Department</th>
+                        <th @class('text-secondary')>Position</th>
+                        <th @class('text-secondary')>Opening</th>
+                        <th @class('text-secondary')>Status</th>
+                        <th @class('text-secondary')>Actions</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     @forelse($requisitions as $req)
-                        <tr>
+                        <tr wire:key="{{ $req->id }}">
                             <td>{{ $req->requested_by }}</td>
                             <td>{{ $req->department }}</td>
                             <td>{{ $req->position }}</td>
                             <td>{{ $req->opening }}</td>
                             <td>{{ $req->status }}</td>
-
-                            {{-- Buttons only for Open --}}
-                            @if($req->status === "Open")
-                                <td>
-                                    <button class="btn btn-success btn-sm" 
-                                        wire:click="accept({{ $req->id }})">
-                                        <i class="bi bi-check-lg"></i>
+                            @if($req->status === 'Pending')
+                                <td @class('gap-3')>
+                                    <button
+                                        @class('btn btn-success btn-sm')
+                                        wire:click="approve({{ $req->id }})"
+                                        title="Approve"
+                                    >
+                                        <i @class('bi bi-check-lg')></i>
                                     </button>
-                                    <button class="btn btn-danger btn-sm" 
-                                        wire:click="draft({{ $req->id }})">
-                                        <i class="bi bi-x"></i>
+
+                                    <button
+                                        @class('btn btn-danger btn-sm')
+                                        wire:click="draft({{ $req->id }})"
+                                        title="Draft"
+                                    >
+                                        <i @class('bi bi-x')></i>
                                     </button>
                                 </td>
                             @else
@@ -90,34 +216,37 @@
                             @endif
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center text-muted">No requisitions found.</td></tr>
+                        <tr>
+                            <td colspan="7" @class('text-center text-muted')>
+                                No requisitions found.
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
-
             {{ $requisitions->links() }}
         </div>
 
     {{-- DRAFT TABLE --}}
     @elseif($drafts !== null)
-        <div class="p-5 bg-white rounded border rounded-bottom-0 border-bottom-0">
+        <div @class('p-5 bg-white rounded border rounded-bottom-0 border-bottom-0')>
             <h3>Draft Requisitions</h3>
-            <p class="text-secondary mb-0">Only draft requisitions</p>
+            <p @class('text-secondary mb-0')>
+                Only draft requisitions
+            </p>
         </div>
-
-        <div class="table-responsive border rounded bg-white px-5 rounded-top-0 border-top-0">
-            <table class="table">
+        <div @class('table-responsive border rounded bg-white px-5 rounded-top-0 border-top-0')>
+            <table @class('table')>
                 <thead>
-                    <tr class="bg-dark">
-                        <th class="text-secondary">Requested by</th>
-                        <th class="text-secondary">Department</th>
-                        <th class="text-secondary">Position</th>
-                        <th class="text-secondary">Opening</th>
-                        <th class="text-secondary">Status</th>
-                        <th class="text-secondary">Action</th>
+                    <tr @class('bg-dark')>
+                        <th @class('text-secondary')>Requested by</th>
+                        <th @class('text-secondary')>Department</th>
+                        <th @class('text-secondary')>Position</th>
+                        <th @class('text-secondary')>Opening</th>
+                        <th @class('text-secondary')>Status</th>
+                        <th @class('text-secondary')>Action</th>
                     </tr>
                 </thead>
-
                 <tbody>
                     @forelse($drafts as $draft)
                         <tr>
@@ -126,19 +255,25 @@
                             <td>{{ $draft->position }}</td>
                             <td>{{ $draft->opening }}</td>
                             <td>{{ $draft->status }}</td>
-                            <td>             
-                                <button class="btn btn-primary btn-sm" 
-                                    wire:click="restore({{ $draft->id }})">
-                                    <i class="bi bi-bootstrap-reboot"></i>
+                            <td>
+                                <button
+                                    @class('btn btn-primary btn-sm')
+                                    wire:click="restore({{ $draft->id }})"
+                                    title="Restore"
+                                >
+                                    <i @class('bi bi-bootstrap-reboot')></i>
                                 </button>
                             </td>
                         </tr>
                     @empty
-                        <tr><td colspan="7" class="text-center text-muted">No drafts found.</td></tr>
+                        <tr>
+                            <td colspan="7" @class('text-center text-muted')>
+                                No drafts found.
+                            </td>
+                        </tr>
                     @endforelse
                 </tbody>
             </table>
-
             {{ $drafts->links() }}
         </div>
     @endif

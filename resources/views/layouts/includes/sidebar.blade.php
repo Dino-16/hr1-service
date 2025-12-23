@@ -30,7 +30,6 @@
                 <span><i @class('bi bi-briefcase-fill me-2')></i> Recruitment</span>
                 <i @class('bi bi-chevron-down small')></i>
             </a>
-
             <div id="recruitmentMenu" @class('collapse ps-4 ' . ((request()->is('requisitions') || request()->is('job-postings')) ? 'show' : ''))>
                 <ul @class('nav flex-column')>
                     <li @class('nav-item')>
@@ -39,18 +38,17 @@
                             <i @class('bi bi-file-earmark-plus me-2')></i> Requisition
                         </a>
                     </li>
-
-                                {{--
                     <li @class('nav-item')>
-                        <a href="{{ route('job-posting') }}"
-                            @class('nav-link text-dark' . (request()->is('job-posting') ? 'active' : ''))>
-                            <i @class('bi bi-megaphone-fill me-2')></i> Job Posting
+                        <a href="{{ route('job-lists') }}"
+                            @class('nav-link text-dark' . (request()->is('job-lists') ? 'active' : ''))>
+                            <i @class('bi bi-megaphone me-2')></i> Job Posting
                         </a>
                     </li>
                 </ul>
             </div>
         </li>
 
+        {{--
         <li @class('nav-item')>
             <a href="#applicantsMenu"
             role="button"
