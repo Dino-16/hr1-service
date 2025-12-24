@@ -6,124 +6,120 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Applicants\Application;
 use App\Models\Recruitment\JobList;
-use Illuminate\Support\Facades\Storage;
+use App\Jobs\ProcessResumeAI;
 use Illuminate\Support\Facades\Http;
+use Illuminate\Support\Facades\DB;
 
 class ApplyNow extends Component
 {
     use WithFileUploads;
 
-    public $applicantLastName = '';
-    public $applicantFirstName = '';
-    public $applicantMiddleName = '';
-    public $applicantSuffixName = '';
-    public $applicantPhone = '';
-    public $applicantEmail = '';
-    public $applicantResumeFile;
-    public $job;
-    public $agreedToTerms = false;
-    public $showTerms = false;
-
-    // Address Properties
-    public $regions = [];
-    public $provinces = [];
-    public $cities = [];
-    public $barangays = [];
-
-    public $selectedRegion = null;
-    public $selectedProvince = null;
-    public $selectedCity = null;
-    public $selectedBarangay = null;
-    public $houseStreet = ''; 
+    public $applicantLastName, $applicantFirstName, $applicantMiddleName, $applicantSuffixName, $applicantPhone, $applicantEmail, $applicantResumeFile;
+    public $job, $agreedToTerms = false, $showTerms = false, $showSuccessToast = false;
+    public $regions = [], $provinces = [], $cities = [], $barangays = [];
+    public $selectedRegion, $selectedProvince, $selectedCity, $selectedBarangay, $houseStreet;
 
     public function mount($id)
     {
         $this->job = JobList::findOrFail($id);
-        
-        // Fix for Region Load
-        $this->regions = Http::withoutVerifying()
-            ->get('https://psgc.cloud/api/regions')
-            ->json();
+        try {
+            $this->regions = Http::withoutVerifying()->get('https://psgc.cloud/api/regions')->json();
+        } catch (\Exception $e) { $this->regions = []; }
     }
 
-    // Cascading Logic with SSL Fix
     public function updatedSelectedRegion($regionCode)
     {
-        $this->provinces = Http::withoutVerifying()
-            ->get("https://psgc.cloud/api/regions/{$regionCode}/provinces")
-            ->json();
-            
-        $this->reset(['selectedProvince', 'selectedCity', 'selectedBarangay', 'cities', 'barangays']);
+        $this->reset(['selectedProvince', 'selectedCity', 'selectedBarangay', 'cities', 'barangays', 'provinces']);
+        if ($regionCode === '130000000') {
+            $this->selectedProvince = 'NCR';
+            $this->cities = Http::withoutVerifying()->get("https://psgc.cloud/api/regions/{$regionCode}/cities-municipalities")->json();
+        } else {
+            $this->provinces = Http::withoutVerifying()->get("https://psgc.cloud/api/regions/{$regionCode}/provinces")->json();
+        }
     }
 
     public function updatedSelectedProvince($provinceCode)
     {
-        $this->cities = Http::withoutVerifying()
-            ->get("https://psgc.cloud/api/provinces/{$provinceCode}/cities-municipalities")
-            ->json();
-            
+        $this->cities = Http::withoutVerifying()->get("https://psgc.cloud/api/provinces/{$provinceCode}/cities-municipalities")->json();
         $this->reset(['selectedCity', 'selectedBarangay', 'barangays']);
     }
 
     public function updatedSelectedCity($cityCode)
     {
-        $this->barangays = Http::withoutVerifying()
-            ->get("https://psgc.cloud/api/cities-municipalities/{$cityCode}/barangays")
-            ->json();
-            
+        $this->barangays = Http::withoutVerifying()->get("https://psgc.cloud/api/cities-municipalities/{$cityCode}/barangays")->json();
         $this->reset(['selectedBarangay']);
     }
 
+    public function removeResume() { $this->applicantResumeFile = null; }
+
     public function submitApplication()
     {
-
         $this->validate([
-            'applicantLastName'    => 'required|string|max:50',
-            'applicantFirstName'   => 'required|string|max:50',
-            'applicantMiddleName'  => 'required|string|max:50',
-            'applicantEmail'       => 'required|email|max:100',
-            'applicantPhone'       => 'required|string|max:50',
-            'applicantResumeFile'  => 'required|file|mimes:pdf,doc,docx|max:2048',
-            'agreedToTerms'        => 'accepted',
-            'selectedRegion'       => 'required',
-            'selectedProvince'     => 'required',
-            'selectedCity'         => 'required',
-            'selectedBarangay'     => 'required',
-            'houseStreet'          => 'required|string|max:250',
+            'applicantLastName' => 'required|max:50',
+            'applicantFirstName' => 'required|max:50',
+            'applicantMiddleName' => 'required|max:50',
+            'applicantEmail' => 'required|email',
+            'applicantPhone' => 'required',
+            'applicantResumeFile' => 'required|file|mimes:pdf,doc,docx|max:2048',
+            'selectedRegion' => 'required',
+            'selectedProvince' => 'required',
+            'selectedCity' => 'required',
+            'selectedBarangay' => 'required',
+            'houseStreet' => 'required',
+            'agreedToTerms' => 'accepted',
         ]);
 
-        // Create formatted address string
-        $fullAddress = "{$this->houseStreet}, {$this->selectedBarangay}, {$this->selectedCity}, {$this->selectedProvince}";
+        try {
+            DB::beginTransaction();
 
-        $applicantResumePath = $this->applicantResumeFile->store('', 'resumes');
-        $applicantResumeUrl = Storage::disk('resumes')->url($applicantResumePath);
+            $regionName = collect($this->regions)->firstWhere('code', $this->selectedRegion)['name'] ?? $this->selectedRegion;
+            $provinceName = ($this->selectedRegion === '130000000') ? 'Metro Manila' : (collect($this->provinces)->firstWhere('code', $this->selectedProvince)['name'] ?? $this->selectedProvince);
+            $cityName = collect($this->cities)->firstWhere('code', $this->selectedCity)['name'] ?? $this->selectedCity;
 
-        Application::create([
-            'applied_position'      => $this->job->position,
-            'applicant_last_name'   => $this->applicantLastName,
-            'applicant_first_name'  => $this->applicantFirstName,
-            'applicant_middle_name' => $this->applicantMiddleName,
-            'applicant_suffix_name' => $this->applicantSuffixName,
-            'applicant_address'     => $fullAddress, 
-            'applicant_phone'       => $this->applicantPhone,
-            'applicant_email'       => $this->applicantEmail,
-            'applicant_resume_file' => $applicantResumeUrl,
-            'status'                => 'Not Filtered',
-            'agreed_to_terms'       => $this->agreedToTerms,
-        ]);
+            $path = $this->applicantResumeFile->store('resumes', 'public');
 
-        session()->flash('success', 'Application submitted successfully');
-        return redirect()->route('application', ['id' => $this->job->id]);
+            // CRITICAL FIX: Mapping properties to Migration column names
+            $application = Application::create([
+                'applied_position' => $this->job->position,
+                'first_name'       => $this->applicantFirstName,
+                'middle_name'      => $this->applicantMiddleName,
+                'last_name'        => $this->applicantLastName,
+                'suffix_name'      => $this->applicantSuffixName,
+                'email'            => $this->applicantEmail,
+                'phone'            => $this->applicantPhone,
+                'region'           => $regionName,
+                'province'         => $provinceName,
+                'city'             => $cityName,
+                'barangay'         => $this->selectedBarangay,
+                'house_street'     => $this->houseStreet,
+                'resume_path'      => $path,
+                'status'           => 'Processing AI',
+                'agreed_to_terms'  => $this->agreedToTerms,
+            ]);
+
+            ProcessResumeAI::dispatch($application);
+            
+            DB::commit();
+
+            $this->showSuccessToast = true;
+            
+            // Clear inputs after success
+            $this->reset([
+                'applicantLastName', 'applicantFirstName', 'applicantMiddleName', 
+                'applicantSuffixName', 'applicantPhone', 'applicantEmail', 
+                'applicantResumeFile', 'selectedRegion', 'selectedProvince', 
+                'selectedCity', 'selectedBarangay', 'houseStreet', 'agreedToTerms'
+            ]);
+
+        } catch (\Exception $e) {
+            DB::rollBack();
+            // This will show the error on your screen if the insert fails
+            $this->addError('submission', 'Database Error: ' . $e->getMessage());
+        }
     }
 
-    // Inside your ApplyNow class
-    public function removeResume()
-    {
-        $this->applicantResumeFile = null;
-    }
-
-    public function render()
-    {
-        return view('livewire.website.apply-now')->layout('layouts.website');
+    public function render() 
+    { 
+        return view('livewire.website.apply-now')->layout('layouts.website'); 
     }
 }

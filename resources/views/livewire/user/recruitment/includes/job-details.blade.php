@@ -1,83 +1,79 @@
 @if($showModal && $jobDetail)
-<div
-    class="modal fade show d-block"
-    tabindex="-1"
-    style="background: rgba(15,35,85,.6);"
->
-    <div class="modal-dialog modal-xl modal-dialog-centered modal-dialog-scrollable">
-        <div class="modal-content border-0 shadow rounded-3">
-            <div class="modal-header bg-white border-bottom px-4 py-4">
-                <div class="w-100">
-                    <h4 class="fw-bold mb-1">
-                        {{ $jobDetail->position }}
-                    </h4>
-                </div>
-                <button
-                    type="button"
-                    class="btn-close"
-                    wire:click="closeModal"
-                ></button>
+<div @class('modal fade show d-block') tabindex="-1" style="background: rgba(15, 35, 85, 0.5); backdrop-filter: blur(4px);">
+    <div @class('modal-dialog modal-lg modal-dialog-centered')>
+        <div @class('modal-content border-0 shadow-lg rounded-3')>
+            
+            <div @class('modal-header border-0 px-4 pt-4 pb-0')>
+                <h4 @class('fw-bold text-dark m-0') style="letter-spacing: -0.01em;">
+                    {{ $jobDetail->position }}
+                </h4>
+                <button type="button" @class('btn-close small shadow-none') wire:click="closeModal"></button>
             </div>
-            <div class="modal-body bg-light px-4 py-4">
-                <div class="bg-white border rounded p-4 mb-4">
-                    <h6 class="fw-semibold mb-3">
-                        Job Settings
-                    </h6>
+
+            <div @class('modal-body px-4 py-4')>
+                
+                <div class="row g-4 mb-5">
+                    <div class="col-md-6">
+                        <span class="text-uppercase text-muted fw-bold small ls-1 d-block mb-2">Description</span>
+                        <p class="text-secondary small leading-relaxed mb-0">
+                            {{ $jobDetail->description }}
+                        </p>
+                    </div>
+                    <div class="col-md-6">
+                        <span class="text-uppercase text-muted fw-bold small ls-1 d-block mb-2">Qualifications</span>
+                        <p class="text-secondary small leading-relaxed mb-0">
+                            {{ $jobDetail->qualifications }}
+                        </p>
+                    </div>
+                </div>
+
+                <div class="pt-4 border-top">
                     <div class="row g-3">
-                        <div class="col-md-6">
-                            <label class="form-label">Employment Type</label>
-                            <select class="form-select" wire:model="type">
+                        <div class="col-md-4">
+                            <label class="form-label x-small fw-bold text-dark">Employment Type</label>
+                            <select class="form-select border-light-subtle shadow-none" wire:model="type">
                                 <option value="On-Site">On-Site</option>
                                 <option value="Remote">Remote</option>
                                 <option value="Hybrid">Hybrid</option>
                             </select>
-                            @error('type')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
                         </div>
-                        <div class="col-md-6">
-                            <label class="form-label">Work Arrangement</label>
-                            <select class="form-select" wire:model="arrangement">
+
+                        <div class="col-md-4">
+                            <label class="form-label x-small fw-bold text-dark">Arrangement</label>
+                            <select class="form-select border-light-subtle shadow-none" wire:model="arrangement">
                                 <option value="Full-Time">Full-Time</option>
                                 <option value="Part-Time">Part-Time</option>
                             </select>
-                            @error('arrangement')
-                                <small class="text-danger">{{ $message }}</small>
-                            @enderror
+                        </div>
+
+                        <div class="col-md-4">
+                            <label class="form-label x-small fw-bold text-dark">Expiration</label>
+                            <input type="date" class="form-control border-light-subtle shadow-none" wire:model="expiration_date">
                         </div>
                     </div>
                 </div>
-                <div class="bg-white border rounded p-4 mb-4">
-                    <h6 class="fw-semibold mb-2">Job Description</h6>
-                    <p class="mb-0 text-secondary">
-                        {{ $jobDetail->description }}
-                    </p>
-                </div>
-                <div class="bg-white border rounded p-4">
-                    <h6 class="fw-semibold mb-2">Qualifications</h6>
-                    <p class="mb-0 text-secondary">
-                        {{ $jobDetail->qualifications }}
-                    </p>
-                </div>
             </div>
-            <div class="modal-footer bg-white border-top px-4 py-3">
-                <button
-                    type="button"
-                    class="btn btn-outline-secondary px-4"
-                    wire:click="closeModal"
-                >
+
+            <div @class('modal-footer border-0 px-4 pb-4 pt-2 justify-content-between')>
+                <button type="button" @class('btn btn-link text-muted text-decoration-none small p-0') wire:click="closeModal">
                     Cancel
                 </button>
-                <button
-                    type="button"
-                    class="btn btn-primary px-4"
-                    wire:click="publishJob"
-                >
-                    <i class="bi bi-check-circle me-1"></i>
-                    Activate
+                <button type="button" @class('btn btn-dark px-4 py-2 rounded-2 fw-semibold shadow-sm') wire:click="publishJob" style="background: #213A5C; border: none;">
+                    <span wire:loading.remove wire:target="publishJob">Activate Post</span>
+                    <span wire:loading wire:target="publishJob" class="small">
+                        <span class="spinner-border spinner-border-sm me-2"></span>Processing
+                    </span>
                 </button>
             </div>
         </div>
     </div>
 </div>
 @endif
+
+<style>
+    .ls-1 { letter-spacing: 0.05em; }
+    .x-small { font-size: 0.75rem; }
+    .leading-relaxed { line-height: 1.6; }
+    .form-select, .form-control { font-size: 0.9rem; border-radius: 4px; padding: 0.6rem; }
+    .form-select:focus, .form-control:focus { border-color: #213A5C; }
+</style>

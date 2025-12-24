@@ -9,6 +9,7 @@ use App\Livewire\Website\ApplyNow;
 use App\Livewire\User\Dashboard;
 use App\Livewire\User\Recruitment\Requisitions;
 use App\Livewire\User\Recruitment\JobLists;
+use App\Livewire\User\Applicants\Applications;
 
 Route::middleware('guest')->group(function() {
     Route::get('/', Home::class)->name('home');
@@ -22,3 +23,4 @@ Route::get('/dashboard', Dashboard::class)->name('dashboard');
 
 Route::get('/requisitions', Requisitions::class)->name('requisitions');
 Route::get('/job-lists', JobLists::class)->name('job-lists');   
+Route::get('/applications', Applications::class)->name('applications');   

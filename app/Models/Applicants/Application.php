@@ -3,8 +3,32 @@
 namespace App\Models\Applicants;
 
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\HasOne;
 
 class Application extends Model
 {
-    //
+    protected $table = 'applications';
+
+    protected $fillable = [
+        'applied_position', // Storing the string name of the job
+        'first_name',
+        'middle_name',
+        'last_name',
+        'suffix_name',
+        'email',
+        'phone',
+        'region',
+        'province',
+        'city',
+        'barangay',
+        'house_street',
+        'resume_path',
+        'status',
+        'agreed_to_terms',
+    ];
+
+    public function filteredResume(): HasOne
+    {
+        return $this->hasOne(FilteredResume::class);
+    }
 }

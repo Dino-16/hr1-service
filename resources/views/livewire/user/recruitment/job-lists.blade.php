@@ -27,8 +27,8 @@
                             @if($job->status === 'Active')
                                 <tr wire:key="{{ $job->id }}">
                                     <td>{{ $job->position }}</td>
-                                    <td>{{ $job->created_at }}</td>
                                     <td>{{ $job->updated_at }}</td>
+                                    <td>{{ $job->expiration_date }}</td>
                                     <td>{{ $job->status }}</td>
                                     <td><button>Deactivate</button></td>
                                 </tr>
@@ -54,7 +54,7 @@
 
                     <div @class('card-body')>
                         @forelse($requisitions as $req)
-                            <p @class('mb-1 fw-semibold')>
+                            <p @class('mb-1')>
                                 <i @class('bi bi-check-circle me-2')></i>
                                 {{ $req->position }}
                             </p>
@@ -75,7 +75,7 @@
                     @foreach ($jobs as $job)
                         @if($job->status === 'Inactive')
                             <div @class('d-flex justify-content-between align-items-center')>
-                                <p @class('mb-1 fw-semibold')>
+                                <p @class('mb-1')>
                                     <i @class('bi bi-suitcase-lg me-2')></i>
                                     {{ $job->position }}
                                 </p>

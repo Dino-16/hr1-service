@@ -13,6 +13,7 @@ class JobList extends Model
         'description',
         'type',
         'arrangement',
+        'expiration_date',
         'status',
     ];
 }

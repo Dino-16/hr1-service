@@ -20,7 +20,7 @@
     </div>
 
     {{-- Intro Section --}}
-    <div @class('row bg-white p-3  fade-section container')>
+    <div @class('row bg-white p-3  fade-section')>
         <div @class('col-md-6 d-flex align-items-center justify-content-center')>
             <img src="{{ asset('images/img-1.png') }}" @class('img-fluid') alt="">
         </div>
@@ -31,7 +31,7 @@
     </div>
 
     {{-- Features Section --}}
-    <div @class('row py-5 bg-body-tertiary d-flex align-items-center justify-content-center p-5 container fade-section') style="height: 80vh">
+    <div @class('row py-5 bg-body-tertiary d-flex align-items-center justify-content-center p-5 fade-section') style="height: 80vh">
         {{-- Card 1 --}}
         <div @class('col-md-4')>
             <div @class('card p-3 shadow-sm')>

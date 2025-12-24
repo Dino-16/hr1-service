@@ -70,7 +70,6 @@
     'bg-dark',
     'text-white',
     'pt-5',
-    'fixed-bottom',
     'pb-4'])>
         <div class="container">
             <div class="row">

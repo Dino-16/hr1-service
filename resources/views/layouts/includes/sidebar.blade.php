@@ -48,7 +48,7 @@
             </div>
         </li>
 
-        {{--
+     
         <li @class('nav-item')>
             <a href="#applicantsMenu"
             role="button"
@@ -71,6 +71,8 @@
                 </ul>
             </div>
         </li>
+
+        {{--
 
         <li @class('nav-item')>
             <a href="#recognitionMenu"
