@@ -6,7 +6,6 @@ use Livewire\Component;
 use Livewire\WithFileUploads;
 use App\Models\Applicants\Application;
 use App\Models\Recruitment\JobList;
-use App\Jobs\ProcessResumeAI;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\DB;
 
@@ -93,11 +92,8 @@ class ApplyNow extends Component
                 'barangay'         => $this->selectedBarangay,
                 'house_street'     => $this->houseStreet,
                 'resume_path'      => $path,
-                'status'           => 'Processing AI',
                 'agreed_to_terms'  => $this->agreedToTerms,
             ]);
-
-            ProcessResumeAI::dispatch($application);
             
             DB::commit();
 

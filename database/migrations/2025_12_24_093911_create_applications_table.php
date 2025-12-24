@@ -34,11 +34,8 @@ return new class extends Migration
             
             // File path
             $table->string('resume_path');
-            
-            // Meta
-            $table->string('status')->default('Processing AI');
+
             $table->boolean('agreed_to_terms')->default(false);
-            
             $table->timestamps();
         });
     }
